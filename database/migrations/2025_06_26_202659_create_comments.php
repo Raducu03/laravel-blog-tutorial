@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('post_id')->unsigned();
-            $table->string('body');
-            $table->foreign('post_id')->references('id')->on('posts')->onDelete('cascade');
-            $table->integer('likes')->default(0);
+            $table->text('content');
+            $table->boolean('is_approved')->default(false);
+            $table->foreignId('post_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('parent_id')->nullable()->constrained('comments')->onDelete('cascade');
             $table->timestamps();
+            
+            $table->index(['post_id', 'is_approved']);
+            $table->index('parent_id');
         });
     }
 

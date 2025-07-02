@@ -3,63 +3,37 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Comment;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $comments = Comment::with(['user', 'post'])
+            ->latest()
+            ->paginate(10);
+
+        return view('admin.comments.index', compact('comments'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function show(Comment $comment)
     {
-        //
+        $comment->load(['user', 'post', 'parent.user']);
+        return view('admin.comments.show', compact('comment'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function approve(Comment $comment)
     {
-        //
+        $comment->update(['is_approved' => !$comment->is_approved]);
+
+        $status = $comment->is_approved ? 'approved' : 'unapproved';
+        return back()->with('success', "Comment {$status} successfully.");
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function destroy(Comment $comment)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $comment->delete();
+        return redirect()->route('admin.comments.index')->with('success', 'Comment deleted successfully.');
     }
 }
